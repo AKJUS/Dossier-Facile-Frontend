@@ -9,7 +9,7 @@ packages:
 
 catalog:
   # dependencies
-  axios: 1.9.0
+  axios: 1.12.0
   "@gouvfr/dsfr": 1.13.2
   "@sentry/vue": 9.22.0
   "@sentry/vite-plugin": 3.5.0
@@ -20,7 +20,7 @@ catalog:
   vue-router: 4.5.1
   # devDependencies
   "@intlify/unplugin-vue-i18n": 6.0.8
-  vite: 7.0.6
+  vite: 7.0.8
   vitest: 3.2.4
   vue-tsc: 3.0.4
   typescript: 5.9.2
