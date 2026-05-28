@@ -1,28 +1,29 @@
 <template>
   <NakedCard class="fr-mt-3w">
-    <h1 class="fr-h6">{{ t('title') }}</h1>
-    <p>{{ t('description') }}</p>
     <form novalidate @submit.prevent="submit">
-      <div class="fr-input-group" :class="{ 'fr-input-group--error': !isMessageValid }">
-        <label for="message" class="fr-label">{{ t('label') }}</label>
-        <textarea
-          id="message"
-          v-model="message"
-          class="fr-input"
-          name="message"
-          rows="1"
-          maxlength="2000"
-          aria-describedby="message-desc message-error"
-        />
-        <p id="message-desc" class="fr-my-1w">{{ message.length }}/2000</p>
-        <p
-          v-if="!isMessageValid && showError"
-          id="message-error"
-          aria-live="assertive"
-          class="fr-error-text"
-        >
-          {{ t('error-message') }}
-        </p>
+      <div v-if="isMainTenant">
+        <h1 class="fr-h6">{{ t('title') }}</h1>
+        <p>{{ t('description') }}</p>
+        <div class="fr-input-group" :class="{ 'fr-input-group--error': !isMessageValid }">
+          <label for="message" class="fr-label">{{ t('label') }}</label>
+          <TextAreaWithCounter
+            id="message"
+            v-model="message"
+            name="message"
+            rows="1"
+            :max="2000"
+            counter-id="message-desc"
+            extra-aria-described-by="message-error"
+          />
+          <p
+            v-if="!isMessageValid && showError"
+            id="message-error"
+            aria-live="assertive"
+            class="fr-error-text"
+          >
+            {{ t('error-message') }}
+          </p>
+        </div>
       </div>
       <DsfrCheckboxSet>
         <template #legend>
@@ -64,14 +65,15 @@
 </template>
 
 <script setup lang="ts">
+import { toast } from '@/components/toast/toastUtils'
 import { useTenantStore } from '@/stores/tenant-store'
+import { DsfrCheckbox, DsfrCheckboxSet } from '@gouvminint/vue-dsfr'
 import NakedCard from 'df-shared-next/src/components/NakedCard.vue'
+import TextAreaWithCounter from 'df-shared-next/src/components/TextAreaWithCounter.vue'
 import { computed, onMounted, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useLoading } from 'vue-loading-overlay'
 import { useRouter } from 'vue-router'
-import { toast } from '@/components/toast/toastUtils'
-import { DsfrCheckbox, DsfrCheckboxSet } from '@gouvminint/vue-dsfr'
 
 const { t } = useI18n()
 
@@ -104,6 +106,8 @@ const hasToDisplayConsentDeclaration = computed(() => {
   return store.user.applicationType !== 'ALONE' || store.user.guarantors.length > 0
 })
 
+const isMainTenant = computed(() => store.user.tenantType === 'CREATE')
+
 const isMessageValid = computed(() => {
   if (message.value.length > 2000) {
     return false
@@ -129,7 +133,7 @@ const submit = () => {
   const loader = $loading.show()
   const params = {
     honorDeclaration: true,
-    clarification: store.user.tenantType === 'CREATE' ? message.value : undefined
+    clarification: isMainTenant.value ? message.value : undefined
   }
   store
     .validateFile(params)
